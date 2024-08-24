@@ -1,0 +1,34 @@
+Function Set-BatchCsv {
+    param (
+        [Parameter(Mandatory = $true)]
+        [int]$Number,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Csv
+    )
+
+    $CSVData = Import-Csv -Path $Csv
+    $CSVData = Import-Csv -Path .\AllOnpremUser.csv
+    $TotalRows = $CSVData.count
+    $RowsPerBatch = [math]::Ceiling($TotalRows / $Number)
+
+    for ($i = 1; $i -lt $Number + 1; $i++) {
+        if ($i -eq 1) {
+            $Batch = $CSVData | Select-Object -First $RowsPerBatch
+            $Batch | Export-Csv -Path .\Batch$i.csv -NoTypeInformation -Encoding UTF8 -Force
+        }
+
+        elseif ($i -eq 2) {
+            $Batch = $CSVData | Select-Object -Skip $RowsPerBatch -First $RowsPerBatch
+            $Batch | Export-Csv -Path .\Batch$i.csv -NoTypeInformation -Encoding UTF8 -Force
+        }
+
+        elseif ($i -gt 2) {
+            $Batch = $CSVData | Select-Object -Skip ($RowsPerBatch * ($i - 1)) -First $RowsPerBatch
+            $Batch | Export-Csv -Path .\Batch$i.csv -NoTypeInformation -Encoding UTF8 -Force
+        }
+    }
+
+}
+
+Set-Batch -Number 2 -Csv .\AllOnpremUser.csv
