@@ -1,0 +1,32 @@
+Function Write-Message {
+    
+    param (
+    [Parameter(Mandatory=$true)]
+    [ValidateSet('ERROR', 'INFO', 'SUCCESS')]
+    [string]$Label,
+
+    [Parameter(Mandatory=$true)]
+    [string]$Message
+    )
+
+    if ($Label -eq 'Error') {
+        Write-Host "[$Label] - " -ForegroundColor Red -NoNewline
+        Write-Host (Get-Date) -  -NoNewline
+        Write-Host " $Message"
+    }
+
+    elseif ($Label -eq 'INFO') {
+        Write-Host "[$Label] - " -ForegroundColor Yellow -NoNewline
+        Write-Host (Get-Date) -  -NoNewline
+        Write-Host " $Message"
+    }
+
+        elseif ($Label -eq 'SUCCESS') {
+        Write-Host "[$Label] - " -ForegroundColor Green -NoNewline
+        Write-Host (Get-Date) -  -NoNewline
+        Write-Host " $Message"
+    }
+    # Add handling for 'Info' and 'Success' labels if needed
+}
+
+Write-Message -Label "Error" -Message "Test"
