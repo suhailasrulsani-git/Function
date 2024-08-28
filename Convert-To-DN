@@ -1,0 +1,52 @@
+Function Convert-To-DN {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$Object
+    )
+
+    $Domains = @("abc.net","zone1.abc.net","zone2.abc.net","zone3.abc.net")
+
+    if ($Object -like "CN=*") {
+        return $Object
+    }
+
+    $InfoNamefound = $false
+    foreach ($Domain in $Domains) {
+        try {
+            $InfoName = Get-ADObject -Filter "name -eq '$Object'" -Server $Domain -Properties samaccountname
+
+            if ($InfoName) {
+                $InfoNamefound = $true
+                return $InfoName.DistinguishedName
+                Break
+            }
+        }
+
+        catch {
+            Continue
+        }
+    }
+
+    if (-not $InfoNamefound) {
+        $InfoSamAccountNamefound = $false
+        foreach ($Domain in $Domains) {
+        try {
+            $InfoName = Get-ADObject -Filter "samaccountname -eq '$Object'" -Server $Domain -Properties samaccountname
+
+            if ($InfoName) {
+                $InfoSamAccountNamefound = $true
+                return $InfoName.DistinguishedName
+                Break
+            }
+        }
+
+        catch {
+            Continue
+        }
+    }
+        
+        if (-not $InfoSamAccountNamefound) {
+            return "ERROR"
+        }
+    }
+}
