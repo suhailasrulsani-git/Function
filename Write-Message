@@ -1,32 +1,37 @@
 Function Write-Message {
     
     param (
-    [Parameter(Mandatory=$true)]
-    [ValidateSet('ERROR', 'INFO', 'SUCCESS')]
-    [string]$Label,
+        [Parameter(Mandatory = $true)]
+        [ValidateSet('ERROR', 'INFO', 'SUCCESS')]
+        [string]$Label,
 
-    [Parameter(Mandatory=$true)]
-    [string]$Message
+        [Parameter(Mandatory = $true)]
+        [string]$Message
     )
 
-    if ($Label -eq 'Error') {
-        Write-Host "[$Label] - " -ForegroundColor Red -NoNewline
+
+    if ($Label -eq 'ERROR') {
+        Write-Host "[$Label]   - " -ForegroundColor Red -NoNewline
         Write-Host (Get-Date) -  -NoNewline
         Write-Host " $Message"
+        Add-Content -Path .\Log.txt -Value "ERROR   - $(Get-Date) - $Message"
     }
 
     elseif ($Label -eq 'INFO') {
-        Write-Host "[$Label] - " -ForegroundColor Yellow -NoNewline
+        Write-Host "[$Label]    - " -ForegroundColor Yellow -NoNewline
         Write-Host (Get-Date) -  -NoNewline
         Write-Host " $Message"
+        Add-Content -Path .\Log.txt -Value "INFO    - $(Get-Date) - $Message"
     }
 
-        elseif ($Label -eq 'SUCCESS') {
+    elseif ($Label -eq 'SUCCESS') {
         Write-Host "[$Label] - " -ForegroundColor Green -NoNewline
         Write-Host (Get-Date) -  -NoNewline
         Write-Host " $Message"
+        Add-Content -Path .\Log.txt -Value "SUCCESS - $(Get-Date) - $Message"
     }
-    # Add handling for 'Info' and 'Success' labels if needed
 }
 
-Write-Message -Label "Error" -Message "Test"
+Write-Message -Label INFO -Message "This is INFO 2"
+Write-Message -Label ERROR -Message "This is ERROR"
+Write-Message -Label SUCCESS -Message "This is SUCCESS"
