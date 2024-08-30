@@ -1,0 +1,46 @@
+Function Get-Owner {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Object
+    )
+
+    $Domains = @("abc.net","zone1.abc.net","zone2.abc.net","zone3.abc.net")
+    foreach ($Domain in $Domains) {
+        Try {
+            $Info = Get-ADObject -Filter "samaccountname -eq '$Object'" -Server $Domain -Properties c, extensionAttribute1,ManagedBy,Manager -ErrorAction Stop
+
+            if ($Info) {
+                $SamAccountName = $Object
+                $DOmain = $Domain
+                $Owner = $Info.extensionAttribute1
+
+                if ([string]::IsNullOrEmpty($Info.extensionAttribute1)) {
+                    $Owner = $Info.ManagedBy
+
+                    if ([string]::IsNullOrEmpty($Info.ManagedBy)) {
+                        $Owner = $Info.manager
+                        $Owner = $Owner | Select-String -Pattern "CN=([^,]+)" -AllMatches
+                    $Owner = $Owner.Matches[0].Groups[1].Value
+                    }
+                }
+
+                Break
+            }
+        }
+
+        Catch {
+            Continue
+        }
+    }
+
+    if ([string]::IsNullOrEmpty($Info)) {
+        $Domain = "ERROR"
+        $Owner = "ERROR"
+    }
+
+    return [PSCustomObject]@{
+        SamAccountName = $Object
+        Domain = $Domain
+        Owner = $Owner
+    }
+}
