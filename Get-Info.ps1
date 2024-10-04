@@ -134,6 +134,3 @@ function Get-info {
         }
     }
 }
-
-Get-info -SupportID "o.2003686"
-Get-info -SupportID "svc.svrmonitor.002"
