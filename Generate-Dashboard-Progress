@@ -6,7 +6,13 @@ param(
     [string]$Filter = "*progress*",
 
     [Parameter(Mandatory = $false)]
-    [string]$Title = "Progress Dashboard"
+    [string]$Title = "Progress Dashboard",
+
+    [Parameter(Mandatory = $false)]
+    [int]$StaleThresholdMinutes = 10,
+
+    [Parameter(Mandatory = $false)]
+    [string]$OutputFileName = "dashboard"
 )
 
 if (-not (Test-Path $FolderPath)) {
@@ -22,6 +28,7 @@ if ($txtFiles.Count -eq 0) {
 }
 
 $cards = @()
+$staleThreshold = (Get-Date).AddMinutes(-$StaleThresholdMinutes)
 
 foreach ($file in $txtFiles) {
     $data = @{}
@@ -55,6 +62,7 @@ foreach ($file in $txtFiles) {
     $current = [int]$data["Current"]
     $total   = [int]$data["Total"]
     $percent = if ($total -gt 0) { [math]::Round(($current / $total) * 100, 1) } else { 0 }
+    $isStale = $file.LastWriteTime -lt $staleThreshold
 
     $cards += [PSCustomObject]@{
         FileName      = $file.Name
@@ -64,6 +72,7 @@ foreach ($file in $txtFiles) {
         Percent       = $percent
         CurrentObject = $data["CurrentObject"]
         LastWrite     = $file.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
+        IsStale       = $isStale
     }
 }
 
@@ -71,10 +80,12 @@ $generatedAt = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
 $cardHtml = ""
 foreach ($c in $cards) {
+    $warningIcon = if ($c.IsStale) { '<span class="stale-icon" title="No update in the last ' + $StaleThresholdMinutes + ' minutes">&#9888;</span>' } else { "" }
+
     $cardHtml += @"
     <div class="card">
       <div class="card-header">
-        <span class="filename">$($c.FileName)</span>
+        <span class="filename">$warningIcon$($c.FileName)</span>
         <span class="percent-badge">$($c.Percent)%</span>
       </div>
       <div class="bar-track">
@@ -150,6 +161,16 @@ $html = @"
       font-weight: 500;
       color: #1c1c1a;
       word-break: break-all;
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+    }
+
+    .stale-icon {
+      font-size: 0.875rem;
+      color: #b45309;
+      flex-shrink: 0;
+      cursor: default;
     }
 
     .percent-badge {
@@ -225,7 +246,8 @@ $cardHtml
 </html>
 "@
 
-$outputPath = Join-Path $FolderPath "dashboard.html"
+$safeFileName = $OutputFileName -replace '\.html$', ''
+$outputPath = Join-Path $FolderPath "$safeFileName.html"
 $html | Out-File -FilePath $outputPath -Encoding UTF8
 
 Write-Host "Dashboard saved to: $outputPath"
