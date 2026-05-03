@@ -12,11 +12,19 @@ param(
     [int]$StaleThresholdMinutes = 10,
 
     [Parameter(Mandatory = $false)]
-    [string]$OutputFileName = "dashboard"
+    [string]$OutputFileName = "dashboard",
+
+    [Parameter(Mandatory = $true)]
+    [string]$OutputPath
 )
 
 if (-not (Test-Path $FolderPath)) {
     Write-Error "Folder not found: $FolderPath"
+    exit 1
+}
+
+if (-not (Test-Path $OutputPath)) {
+    Write-Error "Output folder not found: $OutputPath"
     exit 1
 }
 
@@ -247,7 +255,7 @@ $cardHtml
 "@
 
 $safeFileName = $OutputFileName -replace '\.html$', ''
-$outputPath = Join-Path $FolderPath "$safeFileName.html"
+$outputPath = Join-Path $OutputPath "$safeFileName.html"
 $html | Out-File -FilePath $outputPath -Encoding UTF8
 
 Write-Host "Dashboard saved to: $outputPath"
